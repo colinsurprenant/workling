@@ -117,6 +117,18 @@ module Workling
     end
   end
   
+  # attempts to load qpid and writes out descriptive error message if not present
+  def self.try_load_qpid_client
+    begin
+      require 'qpid'
+    rescue Exception => e
+      raise WorklingError.new(
+        "WORKLING: couldn't find the ruby qpid client. " \
+        "Install from github: gem sources -a http://gems.github.com/ && sudo gem install colinsurprenant-qpid "
+      )
+    end
+  end
+  
   #
   #  returns a config hash. reads RAILS_ROOT/config/workling.yml
   #
@@ -125,6 +137,8 @@ module Workling
       config_path = File.join(RAILS_ROOT, 'config', 'workling.yml')
       @@config ||=  YAML.load_file(config_path)[RAILS_ENV || 'development'].symbolize_keys
       @@config[:memcache_options].symbolize_keys! if @@config[:memcache_options]
+      @@config[:qpid_options].symbolize_keys! if @@config[:qpid_options]
+      @@config[:amqp_options].symbolize_keys! if @@config[:amqp_options]
       @@config 
     rescue
        # config files could not be read correctly

@@ -11,7 +11,7 @@ module Workling
         #
         #  set up client, sleep time
         #
-        def initialize(routing, client_class)
+        def initialize(routing, client)
           super
         end
         

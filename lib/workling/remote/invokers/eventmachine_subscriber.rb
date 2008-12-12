@@ -9,7 +9,7 @@ module Workling
     module Invokers
       class EventmachineSubscriber < Workling::Remote::Invokers::Base
         
-        def initialize(routing, client_class)
+        def initialize(routing, client)
           super
         end
         

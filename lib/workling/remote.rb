@@ -11,9 +11,16 @@ require 'digest/md5'
 module Workling
   module Remote
     
-    # set the desired runner here. this is initialized with Workling.default_runner. 
+    # set the desired runners here. this is initialized with Workling.default_runner. 
+    # dispatcher can be used as a shortcut instead of specifying submitter & requester
+    # since most apps will use the same runner on both the app end and the workers end.
     mattr_accessor :dispatcher
     
+    # submitter and requester are both ends of the dispatcher and can be set individually
+    # if the app end needs to use a different runner than on the worker end.
+    mattr_accessor :submitter
+    mattr_accessor :requester
+
     # set the desired invoker. this class grabs work from the job broker and executes it. 
     mattr_accessor :invoker
     @@invoker ||= Workling::Remote::Invokers::ThreadedPoller
@@ -23,6 +30,16 @@ module Workling
       @@dispatcher ||= Workling.default_runner
     end
     
+    # retrieve the submitter or grab from do-all dispatcher
+    def self.submitter
+      @@submitter ||= self.dispatcher
+    end
+
+    # retrieve the requester or or grab from do-all dispatcher
+    def self.requester
+      @@requester ||= self.dispatcher
+    end
+
     # generates a unique identifier for this particular job. 
     def self.generate_uid(clazz, method)
       uid = ::Digest::MD5.hexdigest("#{ clazz }:#{ method }:#{ rand(1 << 64) }:#{ Time.now }")
@@ -35,7 +52,7 @@ module Workling
       uid = Workling::Remote.generate_uid(clazz, method)
       options[:uid] = uid if options.kind_of?(Hash) && !options[:uid]
       Workling.find(clazz, method) # this line raises a WorklingError if the method does not exist. 
-      dispatcher.run(clazz, method, options)
+      self.submitter.run(clazz, method, options)
       uid
     end
   end

@@ -6,13 +6,12 @@ context "the invoker 'eventmachine subscription'" do
     @client_class = Workling::Clients::MemoryQueueClient
     @client = @client_class.new
     @client.connect
-    @invoker = Workling::Remote::Invokers::EventmachineSubscriber.new(routing, @client_class)
+    @invoker = Workling::Remote::Invokers::EventmachineSubscriber.new(routing, @client)
   end
   
   specify "should invoke Util.echo with the arg 'hello' if the string 'hello' is set onto the queue utils__echo" do
 
     # make sure all new instances point to the same client. that way, state is shared
-    Workling::Clients::MemoryQueueClient.expects(:new).at_least_once.returns @client
     Util.any_instance.expects(:echo).once.with({ :message => "hello" })
     
     # Don't take longer than 10 seconds to shut this down. 

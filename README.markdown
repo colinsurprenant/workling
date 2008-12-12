@@ -126,7 +126,30 @@ You can also set sleep time for each Worker. See the key 'listeners' for this. P
       listens_on: localhost:22122, localhost:221223, localhost:221224
       sleep_time: 2
       reset_time: 30
-      
+
+The qpid_client and amqp_client can be configured using these options:
+
+	  qpid_options:
+	    host: 127.0.0.1
+	    port: 5672
+	    user: guest
+	    pass: guest
+	    vhost: /
+	    spec: some/spec/file/path
+	
+	  amqp_options:
+	    host: 127.0.0.1
+	    port: 5672
+	    user: guest
+	    pass: guest
+	    vhost: /
+	    logging: false
+	    timeout: false
+
+		logging can be either true/false and timeout can be either false or a integer value.
+		
+		All the shown values for qpid_options and amqp_options are the defaults, except for the "spec" field which defaults to the official 0.8 spec in the qpid gem. If all these values are good for your config you don't need to specify them.
+
 Note that you can cluster Starling instances by passing a comma separated list of values to 
         
 Sleep time determines the wait time between polls against polls. A single poll will do one .get on every queue (there is a corresponding queue for each worker method).
@@ -174,6 +197,18 @@ then configure configure your application to use Amqp by adding this:
     Workling::Remote.invoker = Workling::Remote::Invokers::EventmachineSubscriber
     Workling::Remote.dispatcher = Workling::Remote::Runners::ClientRunner.new
     Workling::Remote.dispatcher.client = Workling::Clients::AmqpClient.new
+
+Note that with the AmqpClient on the app end, which sends messages into RabbitMQ, you need to run an evented web server like Thin or evented Mongrel. 
+If you don't have an evented server you can use the Qpid gem on the app using a configuration like this:
+
+	# app end
+	Workling::Remote.submitter = Workling::Remote::Runners::ClientRunner.new
+	Workling::Remote.submitter.client = Workling::Clients::QpidClient.new
+  
+	# workers end
+	Workling::Remote.invoker = Workling::Remote::Invokers::EventmachineSubscriber
+	Workling::Remote.requester = Workling::Remote::Runners::ClientRunner.new
+	Workling::Remote.requester.client = Workling::Clients::AmqpClient.new
     
 Then start the workling Client: 
 

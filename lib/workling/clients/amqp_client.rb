@@ -11,9 +11,20 @@ module Workling
       # starts the client. 
       def connect
         begin
-          @amq = MQ.new
+          options = Workling.config[:amqp_options]
+          
+          options[:host]  ||= '127.0.0.1'
+          options[:port]  ||= 5672
+          options[:vhost] ||= '/'
+          options[:user]  ||= 'guest'
+          options[:pass]  ||= 'guest'
+          options[:timeout] = options[:timeout] ? (options[:timeout] =~ /^false$/i ? nil : options[:timeout].to_i) : nil
+          options[:logging] = ((options[:logging] || 'false') =~ /^true$/i) == 0
+
+          connection = AMQP.connect(options)
+          @amq = MQ.new(connection)
         rescue
-          raise WorklingError.new("couldn't start amq client. if you're running this in a server environment, then make sure the server is evented (ie use thin or evented mongrel, not normal mongrel.)")
+          raise WorklingError.new("couldn't start amq client. if you're running this in a server environment, then make sure the server is evented (ie use thin or evented mongrel, not normal mongrel.); #{$!.to_s}")
         end
       end
       
@@ -23,14 +34,13 @@ module Workling
       
       # subscribe to a queue
       def subscribe(key)
-        @amq.queue(key).subscribe do |value|
-          yield value
+        @amq.queue(key.to_s).subscribe do |value|
+          yield Marshal.load(value)
         end
       end
       
-      # request and retrieve work
-      def retrieve(key); @amq.queue(key); end
-      def request(key, value); @amq.queue(key).publish(value); end
+      # request work
+      def request(key, value); @amq.queue(key.to_s).publish(Marshal.dump(value)); end
     end
   end
 end

@@ -12,7 +12,7 @@ module Workling
         
         cattr_accessor :sleep_time, :reset_time
       
-        def initialize(routing, client_class)
+        def initialize(routing, client)
           super
           
           ThreadedPoller.sleep_time = Workling.config[:sleep_time] || 2
@@ -77,7 +77,7 @@ module Workling
           hread_sleep_time ||= self.class.sleep_time
                 
           # Setup connection to client (one per thread)
-          connection = @client_class.new
+          connection = @client
           connection.connect
           logger.info("** Starting client #{ connection.class } for #{clazz.name} queue")
      

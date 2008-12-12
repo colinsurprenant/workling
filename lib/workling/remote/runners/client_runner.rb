@@ -25,17 +25,19 @@ module Workling
         @@routing ||= Workling::Routing::ClassAndMethodRouting.new
         
         # The workling Client class. Workling::Clients::MemcacheQueueClient.new by default. 
-        cattr_accessor :client
-        @@client ||= Workling::Clients::MemcacheQueueClient.new
+        attr_accessor :client
+        def client
+          @client ||= Workling::Clients::MemcacheQueueClient.new
+        end
         
         # enqueues the job onto the client
         def run(clazz, method, options = {})
           
           # neet to connect in here as opposed to the constructor, since the EM loop is
           # not available there. 
-          @connected ||= self.class.client.connect
+          @connected ||= self.client.connect
           
-          self.class.client.request(@@routing.queue_for(clazz, method), options)    
+          self.client.request(@@routing.queue_for(clazz, method), options)    
           
           return nil
         end

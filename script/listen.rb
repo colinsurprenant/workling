@@ -7,9 +7,9 @@ require File.dirname(__FILE__) + '/../lib/workling/remote/invokers/threaded_poll
 require File.dirname(__FILE__) + '/../lib/workling/remote/invokers/eventmachine_subscriber'
 require File.dirname(__FILE__) + '/../lib/workling/routing/class_and_method_routing'
 
-client = Workling::Remote.dispatcher.client
+client = Workling::Remote.requester.client
 invoker = Workling::Remote.invoker
-poller = invoker.new(Workling::Routing::ClassAndMethodRouting.new, client.class)
+poller = invoker.new(Workling::Routing::ClassAndMethodRouting.new, client)
 
 puts '** Rails loaded.'
 puts "** Starting #{ invoker }..."

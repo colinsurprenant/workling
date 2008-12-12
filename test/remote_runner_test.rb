@@ -6,21 +6,22 @@ context "the remote runner" do
     Workling::Remote.run(:util, :echo, "hello")
   end
   
-  specify "should invoke the dispatcher set up in Workling::Remote.dispatcher" do
+  specify "should invoke the submitter set up in Workling::Remote.dispatcher" do
     clazz, method, options = :util, :echo, { :message => "somebody_came@along.com" }
-    old_dispatcher = Workling::Remote.dispatcher
-    dispatcher = mock
-    dispatcher.expects(:run).with(clazz, method, options)
-    Workling::Remote.dispatcher = dispatcher
+    old_submitter = Workling::Remote.submitter
+    submitter = mock
+    submitter.expects(:run).with(clazz, method, options)
+    Workling::Remote.submitter = submitter
     Workling::Remote.run(clazz, method, options)
-    Workling::Remote.dispatcher = old_dispatcher # set back to whence we came
+    Workling::Remote.submitter = old_submitter # set back to whence we came
   end
   
   specify "should, when being tested, use the default remote runner by when no runner was explicitly set. " do
+    Workling::Remote.dispatcher = nil # reset any previously settings
     Workling::Remote.dispatcher.class.should.equal Workling.default_runner.class
   end
   
-  specify "should raise a Workling::WorklingNotFoundError if it is invoked with a worker key that cannot be constantized" do
+  specify "should raise a Workling::WorklingNotFoundError if it is invoked with a worker key that canont be constantized" do
     should.raise Workling::WorklingNotFoundError do
       Workling::Remote.run(:quatsch_mit_sosse, :fiddle_di_liddle)
     end

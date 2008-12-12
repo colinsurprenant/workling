@@ -20,9 +20,9 @@ module Workling
         #
         #  call up with super in the subclass constructor.
         #
-        def initialize(routing, client_class)
+        def initialize(routing, client)
           @routing = routing
-          @client_class = client_class
+          @client = client
           @sleep_time = Workling.config[:sleep_time] || 2
           @reset_time = Workling.config[:reset_time] || 30
           @@mutex ||= Mutex.new
@@ -62,7 +62,6 @@ module Workling
         
           # handle opening and closing of client. pass code block to this method. 
           def connect
-            @client = @client_class.new
             @client.connect
             
             begin
